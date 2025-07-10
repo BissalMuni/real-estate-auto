@@ -135,20 +135,31 @@ if (totalCount > 0) {
                 ${headers.map(header => {
                   let value = row[header] || '';
                   
-                  // 네이버 단지명에 링크 추가
-                  if (header === '네이버_단지명' && value && row['네이버_단지코드']) {
+                  // 네이버 단지명에 링크 추가 (단지코드가 있는 경우에만)
+                  if (header === '네이버_단지명' && value) {
                     const complexCode = row['네이버_단지코드'];
-                    value = `<a href="https://new.land.naver.com/complexes/${complexCode}" 
-                               target="_blank" 
-                               style="color: #667eea; text-decoration: none; font-weight: 600; transition: color 0.2s ease;"
-                               onmouseover="this.style.color='#764ba2'; this.style.textDecoration='underline';"
-                               onmouseout="this.style.color='#667eea'; this.style.textDecoration='none';">
-                               ${value} 🔗
-                             </a>`;
+                    // 단지코드가 있고 유효한 경우에만 링크 추가
+                    if (complexCode && complexCode !== '' && complexCode !== null && complexCode !== undefined) {
+                      value = `<a href="https://new.land.naver.com/complexes/${complexCode}" 
+                                 target="_blank" 
+                                 style="color: #667eea; text-decoration: none; font-weight: 600; transition: color 0.2s ease;"
+                                 onmouseover="this.style.color='#764ba2'; this.style.textDecoration='underline';"
+                                 onmouseout="this.style.color='#667eea'; this.style.textDecoration='none';">
+                                 ${value} 🔗
+                               </a>`;
+                    } else {
+                      // 단지코드가 없는 경우 단순 텍스트로 표시하고 시각적으로 구분
+                      value = `<span style="color: #6c757d; font-weight: 600;">${value}</span> 
+                               <span style="color: #dc3545; font-size: 10px; background: #f8d7da; padding: 2px 4px; border-radius: 3px;">링크없음</span>`;
+                    }
                   }
-                  // 단지코드는 숨김 처리 (데이터는 유지하되 표시하지 않음)
+                  // 단지코드 표시 (디버깅용)
                   else if (header === '네이버_단지코드') {
-                    value = `<span style="color: #999; font-size: 11px;">${value}</span>`;
+                    if (value && value !== '' && value !== null && value !== undefined) {
+                      value = `<span style="color: #28a745; font-size: 11px; font-weight: 600;">${value}</span>`;
+                    } else {
+                      value = `<span style="color: #dc3545; font-size: 11px; font-weight: 600;">없음</span>`;
+                    }
                   }
                   // 가격차이 하이라이트
                   else if (header.includes('가격차이') && typeof value === 'number') {
@@ -180,6 +191,36 @@ if (totalCount > 0) {
       </div>
     </div>
   `;
+}
+
+// 데이터 품질 통계 계산
+let qualityStats = {
+  totalItems: totalCount,
+  withComplexCode: 0,
+  withoutComplexCode: 0,
+  withComplexName: 0,
+  withoutComplexName: 0
+};
+
+if (totalCount > 0) {
+  allData.forEach(row => {
+    const complexCode = row['네이버_단지코드'];
+    const complexName = row['네이버_단지명'];
+    
+    // 단지코드 통계
+    if (complexCode && complexCode !== '' && complexCode !== null && complexCode !== undefined) {
+      qualityStats.withComplexCode++;
+    } else {
+      qualityStats.withoutComplexCode++;
+    }
+    
+    // 단지명 통계
+    if (complexName && complexName !== '' && complexName !== null && complexName !== undefined) {
+      qualityStats.withComplexName++;
+    } else {
+      qualityStats.withoutComplexName++;
+    }
+  });
 }
 
 // 완전한 HTML 생성
@@ -252,6 +293,41 @@ const html = `<!DOCTYPE html>
         .stat-card p {
             font-size: 1.1em;
             opacity: 0.9;
+        }
+        .quality-stats {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+        .quality-stats h3 {
+            color: #495057;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        .quality-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .quality-item:last-child {
+            border-bottom: none;
+        }
+        .quality-good {
+            color: #28a745;
+            font-weight: 600;
+        }
+        .quality-warning {
+            color: #ffc107;
+            font-weight: 600;
+        }
+        .quality-bad {
+            color: #dc3545;
+            font-weight: 600;
         }
         .file-info {
             background: #f8f9fa;
@@ -345,6 +421,40 @@ const html = `<!DOCTYPE html>
             </div>
         </div>
         
+        ${totalCount > 0 ? `
+        <div class="quality-stats">
+            <h3>📊 데이터 품질 현황</h3>
+            <div class="quality-item">
+                <span>단지코드 보유 매물</span>
+                <span class="${qualityStats.withComplexCode > 0 ? 'quality-good' : 'quality-bad'}">
+                    ${qualityStats.withComplexCode.toLocaleString()}개 
+                    (${((qualityStats.withComplexCode / qualityStats.totalItems) * 100).toFixed(1)}%)
+                </span>
+            </div>
+            <div class="quality-item">
+                <span>단지코드 없는 매물</span>
+                <span class="${qualityStats.withoutComplexCode > 0 ? 'quality-warning' : 'quality-good'}">
+                    ${qualityStats.withoutComplexCode.toLocaleString()}개 
+                    (${((qualityStats.withoutComplexCode / qualityStats.totalItems) * 100).toFixed(1)}%)
+                </span>
+            </div>
+            <div class="quality-item">
+                <span>단지명 보유 매물</span>
+                <span class="${qualityStats.withComplexName > 0 ? 'quality-good' : 'quality-bad'}">
+                    ${qualityStats.withComplexName.toLocaleString()}개 
+                    (${((qualityStats.withComplexName / qualityStats.totalItems) * 100).toFixed(1)}%)
+                </span>
+            </div>
+            <div class="quality-item">
+                <span>링크 연결 가능 매물</span>
+                <span class="${qualityStats.withComplexCode > 0 ? 'quality-good' : 'quality-bad'}">
+                    ${qualityStats.withComplexCode.toLocaleString()}개 
+                    (단지코드 + 단지명 모두 있는 경우)
+                </span>
+            </div>
+        </div>
+        ` : ''}
+        
         ${dataTableHTML}
         
         ${fileStats.length > 0 ? `
@@ -373,7 +483,10 @@ const html = `<!DOCTYPE html>
             <p>GitHub Actions + Netlify 자동 배포</p>
             <p>파일 업로드 → 자동 처리 → 실시간 웹 업데이트</p>
             <p style="margin-top: 10px; font-size: 0.9em; color: #999;">
-                💡 단지명을 클릭하면 네이버 부동산 상세 페이지로 이동합니다
+                💡 단지코드가 있는 단지명을 클릭하면 네이버 부동산 상세 페이지로 이동합니다
+            </p>
+            <p style="margin-top: 5px; font-size: 0.9em; color: #dc3545;">
+                ⚠️ "링크없음" 표시는 해당 매물의 네이버 단지코드가 없어 직접 링크 연결이 불가능한 경우입니다
             </p>
         </div>
     </div>
@@ -426,3 +539,4 @@ const html = `<!DOCTYPE html>
 
 fs.writeFileSync('./index.html', html, 'utf8');
 console.log(`✅ HTML 파일 생성 완료 (${totalCount}개 행 처리)`);
+console.log(`📊 데이터 품질: 단지코드 보유 ${qualityStats.withComplexCode}개 / 없음 ${qualityStats.withoutComplexCode}개`);
