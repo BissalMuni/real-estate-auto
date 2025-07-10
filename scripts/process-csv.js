@@ -69,7 +69,7 @@ if (totalCount > 0) {
   ];
   
   const headers = selectedColumns.filter(col => allData[0].hasOwnProperty(col));
-  const displayData = allData.slice(0, 100);
+  const displayData = allData.slice(0, 150);
   
   dataTableHTML = `
     <div style="margin: 30px 0;">
