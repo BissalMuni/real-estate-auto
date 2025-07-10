@@ -83,12 +83,44 @@ if (totalCount > 0) {
     });
   
   const displayData = filteredData.slice(0, 100);
+
+  // 시도/시군구 옵션 생성
+  const sidoOptions = [...new Set(filteredData.map(row => row['네이버_시도']).filter(Boolean))].sort();
+  const sigunguOptions = [...new Set(filteredData.map(row => row['네이버_시군구']).filter(Boolean))].sort();
+  
   
   dataTableHTML = `
     <div style="margin: 30px 0;">
-      <h2 style="color: #764ba2; margin-bottom: 15px;">📊 부동산 매물 데이터</h2>
+      <h2 style="color: #764ba2; margin-bottom: 20px;">📊 부동산 매물 데이터</h2>
+      
+      <!-- 필터 영역 -->
+      <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #dee2e6;">
+        <h3 style="color: #495057; margin-bottom: 15px; font-size: 16px;">🔍 지역 필터</h3>
+        <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label style="font-weight: 600; color: #495057;">시도:</label>
+            <select id="sidoFilter" onchange="filterData()" style="padding: 8px 12px; border: 1px solid #ced4da; border-radius: 5px; background: white; min-width: 120px;">
+              <option value="">전체</option>
+              ${sidoOptions.map(sido => `<option value="${sido}">${sido}</option>`).join('')}
+            </select>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label style="font-weight: 600; color: #495057;">시군구:</label>
+            <select id="sigunguFilter" onchange="filterData()" style="padding: 8px 12px; border: 1px solid #ced4da; border-radius: 5px; background: white; min-width: 120px;">
+              <option value="">전체</option>
+              ${sigunguOptions.map(sigungu => `<option value="${sigungu}">${sigungu}</option>`).join('')}
+            </select>
+          </div>
+          <button onclick="resetFilters()" style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
+            초기화
+          </button>
+          <div id="filterStatus" style="margin-left: 10px; color: #6c757d; font-weight: 600;"></div>
+        </div>
+      </div>
+      
+      <!-- 데이터 테이블 -->
       <div style="overflow-x: auto; max-height: 600px; border: 1px solid #ddd; border-radius: 10px; background: white;">
-        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+        <table id="dataTable" style="width: 100%; border-collapse: collapse; font-size: 13px;">
           <thead style="background: linear-gradient(45deg, #667eea, #764ba2); color: white; position: sticky; top: 0;">
             <tr>
               ${headers.map(header => 
@@ -96,19 +128,22 @@ if (totalCount > 0) {
               ).join('')}
             </tr>
           </thead>
-          <tbody>
+          <tbody id="dataBody">
             ${displayData.map((row, index) => `
-              <tr style="background: ${index % 2 === 0 ? '#f8f9fa' : 'white'};">
+              <tr style="background: ${index % 2 === 0 ? '#f8f9fa' : 'white'};" 
+                  data-sido="${row['네이버_시도'] || ''}" 
+                  data-sigungu="${row['네이버_시군구'] || ''}">
                 ${headers.map(header => {
                   let value = row[header] || '';
                   
+                  // 가격차이 하이라이트
+                  if (header.includes('가격차이') && typeof value === 'number') {
+                    value = `<span style="color: #f39c12; font-weight: bold;">+${value.toLocaleString()}만원</span>`;
+                  }
                   // 가격 하이라이트
-                  if (header.includes('매매가') && typeof value === 'number') {
+                  else if (header.includes('매매가') && typeof value === 'number') {
                     value = `<span style="color: #e74c3c; font-weight: bold;">${value.toLocaleString()}만원</span>`;
                   }
-                  //가격 차이 하이라이트
-                  else if (header.includes('가격차이') && typeof value === 'number') {
-                    value = `<span style="color: #f39c12; font-weight: bold;">+${value.toLocaleString()}만원</span>`;}
                   // 면적 하이라이트  
                   else if (header.includes('면적')) {
                     value = `<span style="color: #3498db; font-weight: 600;">${value}</span>`;
@@ -122,14 +157,12 @@ if (totalCount > 0) {
                 }).join('')}
               </tr>
             `).join('')}
-            ${filteredData.length > 100 ? 
-              `<tr style="background: #fff3cd;">
-                <td colspan="${headers.length}" style="text-align: center; padding: 15px; font-weight: bold; color: #856404;">
-                  ⚠️ 처음 100개 행만 표시됩니다. 총 ${filteredData.length}개 행이 조건에 맞습니다. (가격차이 1000만원 이상)
-                </td>
-              </tr>` : ''}
           </tbody>
         </table>
+      </div>
+      
+      <div id="tableStatus" style="text-align: center; margin-top: 15px; color: #6c757d; font-weight: 600;">
+        총 ${filteredData.length}개 매물 중 ${Math.min(100, filteredData.length)}개 표시
       </div>
     </div>
   `;
@@ -325,13 +358,48 @@ const html = `<!DOCTYPE html>
         </div>
     </div>
     <script>
-    function toggleFileList() {
-        const fileList = document.getElementById('fileList');
-        const fileToggle = document.getElementById('fileToggle');
-        
-        fileList.classList.toggle('collapsed');
-        fileToggle.classList.toggle('collapsed');
-    }
+        function toggleFileList() {
+            const fileList = document.getElementById('fileList');
+            const fileToggle = document.getElementById('fileToggle');
+            
+            fileList.classList.toggle('collapsed');
+            fileToggle.classList.toggle('collapsed');
+        }
+
+        // 필터링 함수
+        function filterData() {
+            const sidoFilter = document.getElementById('sidoFilter').value;
+            const sigunguFilter = document.getElementById('sigunguFilter').value;
+            const rows = document.querySelectorAll('#dataBody tr');
+            
+            let visibleCount = 0;
+            
+            rows.forEach(row => {
+                const sido = row.getAttribute('data-sido');
+                const sigungu = row.getAttribute('data-sigungu');
+                
+                const sidoMatch = !sidoFilter || sido === sidoFilter;
+                const sigunguMatch = !sigunguFilter || sigungu === sigunguFilter;
+                
+                if (sidoMatch && sigunguMatch) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            // 상태 업데이트
+            document.getElementById('filterStatus').textContent = 
+                sidoFilter || sigunguFilter ? '필터 적용: ' + visibleCount + '개 매물' : '';
+        }
+
+        // 필터 초기화
+        function resetFilters() {
+            document.getElementById('sidoFilter').value = '';
+            document.getElementById('sigunguFilter').value = '';
+            filterData();
+        }
     </script>    
 </body>
 </html>`;
