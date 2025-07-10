@@ -158,13 +158,13 @@ const html = `<!DOCTYPE html>
             font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif; 
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
+            padding: 10px;
             line-height: 1.6;
         }
         .container {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
-            padding: 40px;
+            padding: 5px;
             max-width: 1400px;
             margin: 0 auto;
             box-shadow: 0 25px 50px rgba(0,0,0,0.1);
