@@ -65,17 +65,7 @@ console.log(`📊 통계: 총 ${totalCount}개 행, ${uniqueLocations}개 지역
 let dataTableHTML = '';
 if (totalCount > 0) {  
   const selectedColumns = [
-    '가격차이_만원',
-    '네이버_매매가',
-    'KB_하위평균',
-    'KB_일반평균',
-    '네이버_단지명',
-    '네이버_시도',
-    '네이버_시군구',
-    '네이버_읍면동',
-    '네이버_공급면적',
-    '네이버_층정보',
-    '네이버_확인일자'    
+  '가격차이_만원','네이버_단지명','네이버_시도','네이버_시군구','네이버_읍면동','네이버_공급면적','네이버_매매가','네이버_층정보','네이버_확인일자','KB_하위평균','KB_일반평균'
   ];
   
   const headers = selectedColumns.filter(col => allData[0].hasOwnProperty(col));
@@ -158,13 +148,13 @@ const html = `<!DOCTYPE html>
             font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif; 
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 10px;
+            padding: 20px;
             line-height: 1.6;
         }
         .container {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
-            padding: 5px;
+            padding: 40px;
             max-width: 1400px;
             margin: 0 auto;
             box-shadow: 0 25px 50px rgba(0,0,0,0.1);
@@ -308,8 +298,8 @@ const html = `<!DOCTYPE html>
         
         ${fileStats.length > 0 ? `
         <div class="file-info">
-            <h3 onclick="toggleFileList()" id="fileToggle">📁 파일 처리 현황</h3>
-            <div class="file-list" id="fileList">
+            <h3 onclick="toggleFileList()" id="fileToggle" class="collapsed">📁 파일 처리 현황</h3>
+           <div class="file-list collapsed" id="fileList">
                 ${fileStats.map(stat => 
                 `<div class="file-item">
                     <strong>📄 ${stat.파일명}</strong><br>
