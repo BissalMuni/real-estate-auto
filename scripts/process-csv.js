@@ -52,18 +52,14 @@ if (fs.existsSync(dataDir)) {
 
 // 통계 계산
 const totalCount = allData.length;
-const avgPrice = totalCount > 0 ? 
-  allData.reduce((sum, row) => {
-    const price = parseFloat(row['네이버_매매가_숫자']) || 0;
-    return sum + price;
-  }, 0) / totalCount : 0;
+
 
 const uniqueLocations = new Set(allData.map(row => 
   row['네이버_시도'] && row['네이버_시군구'] ? 
   `${row['네이버_시도']} ${row['네이버_시군구']}` : '알 수 없음'
 )).size;
 
-console.log(`📊 통계: 총 ${totalCount}개 행, 평균 가격 ${Math.round(avgPrice)}만원, ${uniqueLocations}개 지역`);
+console.log(`📊 통계: 총 ${totalCount}개 행, ${uniqueLocations}개 지역`);
 
 // 데이터 테이블 HTML 생성
 let dataTableHTML = '';
@@ -200,7 +196,31 @@ const html = `<!DOCTYPE html>
         .file-info h3 {
             color: #495057;
             margin-bottom: 15px;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            transition: color 0.3s ease;
         }
+        .file-info h3:hover {
+            color: #667eea;
+        }
+        .file-info h3::before {
+            content: '▼';
+            margin-right: 10px;
+            transition: transform 0.3s ease;
+        }
+        .file-info h3.collapsed::before {
+            transform: rotate(-90deg);
+        }
+        .file-list {
+            max-height: 1000px;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        .file-list.collapsed {
+            max-height: 0;
+        }            
         .file-item {
             padding: 10px;
             margin: 5px 0;
@@ -243,10 +263,6 @@ const html = `<!DOCTYPE html>
                 <p>총 매물 수</p>
             </div>
             <div class="stat-card">
-                <h3>${Math.round(avgPrice).toLocaleString()}</h3>
-                <p>평균 매매가 (만원)</p>
-            </div>
-            <div class="stat-card">
                 <h3>${fileStats.length}</h3>
                 <p>처리된 파일 수</p>
             </div>
@@ -256,15 +272,21 @@ const html = `<!DOCTYPE html>
             </div>
         </div>
         
+
+        
+        ${dataTableHTML}
+        
         ${fileStats.length > 0 ? `
         <div class="file-info">
-            <h3>📁 파일 처리 현황</h3>
-            ${fileStats.map(stat => 
-              `<div class="file-item">
-                <strong>📄 ${stat.파일명}</strong><br>
-                ${stat.행수.toLocaleString()}개 행 처리 (${stat.처리시간})
-              </div>`
-            ).join('')}
+            <h3 onclick="toggleFileList()" id="fileToggle">📁 파일 처리 현황</h3>
+            <div class="file-list" id="fileList">
+                ${fileStats.map(stat => 
+                `<div class="file-item">
+                    <strong>📄 ${stat.파일명}</strong><br>
+                    ${stat.행수.toLocaleString()}개 행 처리 (${stat.처리시간})
+                </div>`
+                ).join('')}
+            </div>
         </div>
         ` : `
         <div class="file-info">
@@ -274,15 +296,23 @@ const html = `<!DOCTYPE html>
             </p>
         </div>
         `}
-        
-        ${dataTableHTML}
-        
+
+
         <div class="footer">
             <h4>🚀 완전 자동화 시스템</h4>
             <p>GitHub Actions + Netlify 자동 배포</p>
             <p>CSV 파일 업로드 → 자동 처리 → 실시간 웹 업데이트</p>
         </div>
     </div>
+    <script>
+    function toggleFileList() {
+        const fileList = document.getElementById('fileList');
+        const fileToggle = document.getElementById('fileToggle');
+        
+        fileList.classList.toggle('collapsed');
+        fileToggle.classList.toggle('collapsed');
+    }
+    </script>    
 </body>
 </html>`;
 
