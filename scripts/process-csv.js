@@ -69,7 +69,20 @@ if (totalCount > 0) {
   ];
   
   const headers = selectedColumns.filter(col => allData[0].hasOwnProperty(col));
-  const displayData = allData.slice(0, 150);
+  
+  // 가격차이_만원이 1000 이상인 데이터만 필터링하고 내림차순 정렬
+  const filteredData = allData
+    .filter(row => {
+      const priceDiff = parseFloat(row['가격차이_만원']) || 0;
+      return priceDiff >= 1000;
+    })
+    .sort((a, b) => {
+      const priceA = parseFloat(a['가격차이_만원']) || 0;
+      const priceB = parseFloat(b['가격차이_만원']) || 0;
+      return priceB - priceA; // 내림차순 정렬
+    });
+  
+  const displayData = filteredData.slice(0, 100);
   
   dataTableHTML = `
     <div style="margin: 30px 0;">
@@ -93,6 +106,9 @@ if (totalCount > 0) {
                   if (header.includes('매매가') && typeof value === 'number') {
                     value = `<span style="color: #e74c3c; font-weight: bold;">${value.toLocaleString()}만원</span>`;
                   }
+                  //가격 차이 하이라이트
+                  else if (header.includes('가격차이') && typeof value === 'number') {
+                    value = `<span style="color: #f39c12; font-weight: bold;">+${value.toLocaleString()}만원</span>`;}
                   // 면적 하이라이트  
                   else if (header.includes('면적')) {
                     value = `<span style="color: #3498db; font-weight: 600;">${value}</span>`;
@@ -106,10 +122,10 @@ if (totalCount > 0) {
                 }).join('')}
               </tr>
             `).join('')}
-            ${allData.length > 100 ? 
+            ${filteredData.length > 100 ? 
               `<tr style="background: #fff3cd;">
                 <td colspan="${headers.length}" style="text-align: center; padding: 15px; font-weight: bold; color: #856404;">
-                  ⚠️ 처음 100개 행만 표시됩니다. 총 ${allData.length}개 행이 처리되었습니다.
+                  ⚠️ 처음 100개 행만 표시됩니다. 총 ${filteredData.length}개 행이 조건에 맞습니다. (가격차이 1000만원 이상)
                 </td>
               </tr>` : ''}
           </tbody>
