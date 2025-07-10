@@ -50,6 +50,48 @@ if (fs.existsSync(dataDir)) {
   console.log('📂 data 폴더가 없습니다.');
 }
 
+// 중복 제거 처리
+const originalCount = allData.length;
+console.log(`📊 중복 제거 전: ${originalCount}개 행`);
+
+if (originalCount > 0) {
+  // 중복 제거 기준 컬럼들
+  const deduplicationColumns = [
+    '가격차이_만원','네이버_단지명','네이버_시도','네이버_시군구','네이버_읍면동',
+    '네이버_공급면적','네이버_매매가','네이버_층정보','네이버_확인일자',
+    'KB_하위평균','KB_일반평균','네이버_단지코드'
+  ];
+  
+  // 중복 제거 함수
+  function removeDuplicates(data, columns) {
+    const seen = new Set();
+    const uniqueData = [];
+    
+    data.forEach(row => {
+      // 중복 제거 기준 컬럼들의 값을 조합하여 키 생성
+      const key = columns.map(col => {
+        const value = row[col];
+        // null, undefined, 빈 문자열을 모두 동일하게 처리
+        return value === null || value === undefined || value === '' ? 'NULL' : String(value);
+      }).join('|');
+      
+      if (!seen.has(key)) {
+        seen.add(key);
+        uniqueData.push(row);
+      }
+    });
+    
+    return uniqueData;
+  }
+  
+  // 중복 제거 실행
+  allData = removeDuplicates(allData, deduplicationColumns);
+  const duplicateCount = originalCount - allData.length;
+  
+  console.log(`🔄 중복 제거 완료: ${duplicateCount}개 중복 제거`);
+  console.log(`📊 중복 제거 후: ${allData.length}개 행`);
+}
+
 // 통계 계산
 const totalCount = allData.length;
 
@@ -58,7 +100,7 @@ const uniqueLocations = new Set(allData.map(row =>
   `${row['네이버_시도']} ${row['네이버_시군구']}` : '알 수 없음'
 )).size;
 
-console.log(`📊 통계: 총 ${totalCount}개 행, ${uniqueLocations}개 지역`);
+console.log(`📊 최종 통계: 총 ${totalCount}개 행, ${uniqueLocations}개 지역`);
 
 // 데이터 테이블 HTML 생성
 let dataTableHTML = '';
@@ -92,8 +134,20 @@ if (totalCount > 0) {
     <div style="margin: 30px 0;">
       <h2 style="color: #764ba2; margin-bottom: 20px;">📊 부동산 매물 데이터</h2>
       
+      <!-- 중복 제거 정보 -->
+      <div style="background: #e8f5e8; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #28a745;">
+        <h3 style="color: #155724; margin-bottom: 10px; font-size: 16px;">🔄 중복 제거 결과</h3>
+        <div style="color: #155724; font-weight: 600;">
+          원본 데이터: ${originalCount.toLocaleString()}개 → 중복 제거 후: ${totalCount.toLocaleString()}개 
+          <span style="color: #dc3545;">(${(originalCount - totalCount).toLocaleString()}개 중복 제거)</span>
+        </div>
+        <div style="color: #6c757d; font-size: 14px; margin-top: 5px;">
+          중복 제거 기준: 가격차이, 단지명, 지역정보, 면적, 매매가, 층정보, 확인일자, KB평균가, 단지코드
+        </div>
+      </div>
+      
       <!-- 필터 영역 -->
-      <div style="background: #f8f9fa; padding: 5px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #dee2e6;">
+      <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #dee2e6;">
         <h3 style="color: #495057; margin-bottom: 15px; font-size: 16px;">🔍 지역 필터</h3>
         <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
           <div style="display: flex; align-items: center; gap: 8px;">
@@ -404,12 +458,17 @@ const html = `<!DOCTYPE html>
         <div class="update-banner">
             🎉 <strong>자동 업데이트 완료!</strong> 
             최종 업데이트: ${new Date().toLocaleString('ko-KR')}
+            <br>
+            <span style="font-size: 0.9em; opacity: 0.9;">
+                원본 ${originalCount.toLocaleString()}개 → 중복 제거 후 ${totalCount.toLocaleString()}개 
+                (${(originalCount - totalCount).toLocaleString()}개 중복 제거)
+            </span>
         </div>
         
         <div class="stats-grid">
             <div class="stat-card">
                 <h3>${totalCount.toLocaleString()}</h3>
-                <p>총 매물 수</p>
+                <p>총 매물 수 (중복 제거 후)</p>
             </div>
             <div class="stat-card">
                 <h3>${fileStats.length}</h3>
@@ -418,6 +477,10 @@ const html = `<!DOCTYPE html>
             <div class="stat-card">
                 <h3>${uniqueLocations}</h3>
                 <p>고유 지역 수</p>
+            </div>
+            <div class="stat-card">
+                <h3>${(originalCount - totalCount).toLocaleString()}</h3>
+                <p>제거된 중복 수</p>
             </div>
         </div>
         
@@ -479,14 +542,17 @@ const html = `<!DOCTYPE html>
         `}
 
         <div class="footer">
-            <h4>🚀 완전 자동화 시스템</h4>
+            <h4>🚀 완전 자동화 시스템 (중복 제거 기능 포함)</h4>
             <p>GitHub Actions + Netlify 자동 배포</p>
-            <p>파일 업로드 → 자동 처리 → 실시간 웹 업데이트</p>
+            <p>파일 업로드 → 자동 처리 → 중복 제거 → 실시간 웹 업데이트</p>
             <p style="margin-top: 10px; font-size: 0.9em; color: #999;">
                 💡 단지코드가 있는 단지명을 클릭하면 네이버 부동산 상세 페이지로 이동합니다
             </p>
             <p style="margin-top: 5px; font-size: 0.9em; color: #dc3545;">
                 ⚠️ "링크없음" 표시는 해당 매물의 네이버 단지코드가 없어 직접 링크 연결이 불가능한 경우입니다
+            </p>
+            <p style="margin-top: 5px; font-size: 0.9em; color: #28a745;">
+                🔄 중복 제거 기준: 모든 주요 컬럼(가격차이, 단지명, 지역, 면적, 가격, 층, 날짜, KB평균가, 단지코드)
             </p>
         </div>
     </div>
@@ -540,3 +606,11 @@ const html = `<!DOCTYPE html>
 fs.writeFileSync('./index.html', html, 'utf8');
 console.log(`✅ HTML 파일 생성 완료 (${totalCount}개 행 처리)`);
 console.log(`📊 데이터 품질: 단지코드 보유 ${qualityStats.withComplexCode}개 / 없음 ${qualityStats.withoutComplexCode}개`);
+console.log(`🔄 중복 제거 결과: 원본 ${originalCount}개 → 최종 ${totalCount}개 (${originalCount - totalCount}개 중복 제거)`);
+
+// 중복 제거된 데이터를 새로운 CSV로 저장 (옵션)
+if (totalCount > 0) {
+  const csvOutput = Papa.unparse(allData);
+  fs.writeFileSync('./merged_deduplicated_data.csv', csvOutput, 'utf8');
+  console.log(`💾 중복 제거된 통합 CSV 파일 생성: merged_deduplicated_data.csv`);
+}
