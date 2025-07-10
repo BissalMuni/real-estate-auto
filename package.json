@@ -1,0 +1,1 @@
+{ "name": "real-estate-auto", "version": "1.0.0", "description": "부동산 데이터 자동 업데이트 시스템", "main": "scripts/process-csv.js", "scripts": { "process": "node scripts/process-csv.js" }, "dependencies": { "papaparse": "^5.4.1" }, "keywords": ["real-estate", "csv", "automation"], "author": "BissalMuni", "license": "MIT" }
