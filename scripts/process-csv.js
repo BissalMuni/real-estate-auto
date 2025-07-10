@@ -239,10 +239,7 @@ if (totalCount > 0) {
           </tbody>
         </table>
       </div>
-      
-      <div id="tableStatus" style="text-align: center; margin-top: 15px; color: #6c757d; font-weight: 600;">
-        총 ${filteredData.length}개 매물 중 ${Math.min(100, filteredData.length)}개 표시
-      </div>
+     
     </div>
   `;
 }
