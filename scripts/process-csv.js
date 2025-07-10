@@ -468,7 +468,7 @@ const html = `<!DOCTYPE html>
         <div class="stats-grid">
             <div class="stat-card">
                 <h3>${totalCount.toLocaleString()}</h3>
-                <p>총 매물 수 (중복 제거 후)</p>
+                <p>총 매물 수</p>
             </div>
             <div class="stat-card">
                 <h3>${fileStats.length}</h3>
@@ -542,7 +542,7 @@ const html = `<!DOCTYPE html>
         `}
 
         <div class="footer">
-            <h4>🚀 완전 자동화 시스템 (중복 제거 기능 포함)</h4>
+            <h4>🚀 완전 자동화 시스템</h4>
             <p>GitHub Actions + Netlify 자동 배포</p>
             <p>파일 업로드 → 자동 처리 → 중복 제거 → 실시간 웹 업데이트</p>
             <p style="margin-top: 10px; font-size: 0.9em; color: #999;">
@@ -550,9 +550,6 @@ const html = `<!DOCTYPE html>
             </p>
             <p style="margin-top: 5px; font-size: 0.9em; color: #dc3545;">
                 ⚠️ "링크없음" 표시는 해당 매물의 네이버 단지코드가 없어 직접 링크 연결이 불가능한 경우입니다
-            </p>
-            <p style="margin-top: 5px; font-size: 0.9em; color: #28a745;">
-                🔄 중복 제거 기준: 모든 주요 컬럼(가격차이, 단지명, 지역, 면적, 가격, 층, 날짜, KB평균가, 단지코드)
             </p>
         </div>
     </div>
