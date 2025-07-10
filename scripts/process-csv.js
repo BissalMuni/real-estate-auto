@@ -63,9 +63,13 @@ console.log(`📊 통계: 총 ${totalCount}개 행, ${uniqueLocations}개 지역
 
 // 데이터 테이블 HTML 생성
 let dataTableHTML = '';
-if (totalCount > 0) {
-  const headers = Object.keys(allData[0]);
-  const displayData = allData.slice(0, 100); // 최대 100개 행만 표시
+if (totalCount > 0) {  
+  const selectedColumns = [
+  '네이버_단지명','네이버_시도','네이버_시군구','네이버_읍면동','네이버_공급면적','네이버_매매가','네이버_층정보','네이버_부동산사무소','네이버_확인일자','KB_하위평균','KB_일반평균','가격차이_만원'
+  ];
+  
+  const headers = selectedColumns.filter(col => allData[0].hasOwnProperty(col));
+  const displayData = allData.slice(0, 100);
   
   dataTableHTML = `
     <div style="margin: 30px 0;">
