@@ -94,7 +94,7 @@ if (totalCount > 0) {
       <h2 style="color: #764ba2; margin-bottom: 20px;">📊 부동산 매물 데이터</h2>
       
       <!-- 필터 영역 -->
-      <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #dee2e6;">
+      <div style="background: #f8f9fa; padding: 5px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #dee2e6;">
         <h3 style="color: #495057; margin-bottom: 15px; font-size: 16px;">🔍 지역 필터</h3>
         <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
           <div style="display: flex; align-items: center; gap: 8px;">
@@ -187,7 +187,7 @@ const html = `<!DOCTYPE html>
         .container {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
-            padding: 40px;
+            padding: 20px;
             max-width: 1400px;
             margin: 0 auto;
             box-shadow: 0 25px 50px rgba(0,0,0,0.1);
