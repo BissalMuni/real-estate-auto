@@ -53,7 +53,6 @@ if (fs.existsSync(dataDir)) {
 // 통계 계산
 const totalCount = allData.length;
 
-
 const uniqueLocations = new Set(allData.map(row => 
   row['네이버_시도'] && row['네이버_시군구'] ? 
   `${row['네이버_시도']} ${row['네이버_시군구']}` : '알 수 없음'
@@ -65,7 +64,7 @@ console.log(`📊 통계: 총 ${totalCount}개 행, ${uniqueLocations}개 지역
 let dataTableHTML = '';
 if (totalCount > 0) {  
   const selectedColumns = [
-  '가격차이_만원','네이버_단지명','네이버_시도','네이버_시군구','네이버_읍면동','네이버_공급면적','네이버_매매가','네이버_층정보','네이버_확인일자','KB_하위평균','KB_일반평균'
+  '가격차이_만원','네이버_단지명','네이버_시도','네이버_시군구','네이버_읍면동','네이버_공급면적','네이버_매매가','네이버_층정보','네이버_확인일자','KB_하위평균','KB_일반평균','네이버_단지코드'
   ];
   
   const headers = selectedColumns.filter(col => allData[0].hasOwnProperty(col));
@@ -136,8 +135,23 @@ if (totalCount > 0) {
                 ${headers.map(header => {
                   let value = row[header] || '';
                   
+                  // 네이버 단지명에 링크 추가
+                  if (header === '네이버_단지명' && value && row['네이버_단지코드']) {
+                    const complexCode = row['네이버_단지코드'];
+                    value = `<a href="https://new.land.naver.com/complexes/${complexCode}" 
+                               target="_blank" 
+                               style="color: #667eea; text-decoration: none; font-weight: 600; transition: color 0.2s ease;"
+                               onmouseover="this.style.color='#764ba2'; this.style.textDecoration='underline';"
+                               onmouseout="this.style.color='#667eea'; this.style.textDecoration='none';">
+                               ${value} 🔗
+                             </a>`;
+                  }
+                  // 단지코드는 숨김 처리 (데이터는 유지하되 표시하지 않음)
+                  else if (header === '네이버_단지코드') {
+                    value = `<span style="color: #999; font-size: 11px;">${value}</span>`;
+                  }
                   // 가격차이 하이라이트
-                  if (header.includes('가격차이') && typeof value === 'number') {
+                  else if (header.includes('가격차이') && typeof value === 'number') {
                     value = `<span style="color: #f39c12; font-weight: bold;">+${value.toLocaleString()}만원</span>`;
                   }
                   // 가격 하이라이트
@@ -292,6 +306,12 @@ const html = `<!DOCTYPE html>
             color: #495057;
             margin-bottom: 10px;
         }
+        
+        /* 링크 스타일 추가 */
+        a {
+            transition: all 0.2s ease;
+        }
+        
         @media (max-width: 768px) {
             .container { padding: 20px; margin: 10px; }
             h1 { font-size: 2.2em; }
@@ -325,8 +345,6 @@ const html = `<!DOCTYPE html>
             </div>
         </div>
         
-
-        
         ${dataTableHTML}
         
         ${fileStats.length > 0 ? `
@@ -350,11 +368,13 @@ const html = `<!DOCTYPE html>
         </div>
         `}
 
-
         <div class="footer">
             <h4>🚀 완전 자동화 시스템</h4>
             <p>GitHub Actions + Netlify 자동 배포</p>
-            <p>CSV 파일 업로드 → 자동 처리 → 실시간 웹 업데이트</p>
+            <p>파일 업로드 → 자동 처리 → 실시간 웹 업데이트</p>
+            <p style="margin-top: 10px; font-size: 0.9em; color: #999;">
+                💡 단지명을 클릭하면 네이버 부동산 상세 페이지로 이동합니다
+            </p>
         </div>
     </div>
     <script>
