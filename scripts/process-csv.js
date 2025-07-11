@@ -123,7 +123,7 @@ if (totalCount > 0) {
       return priceB - priceA; // 내림차순 정렬
     });
   
-  const displayData = filteredData.slice(0, 100);
+  const displayData = filteredData.slice(0, 2000);
 
   // 시도/시군구 옵션 생성
   const sidoOptions = [...new Set(filteredData.map(row => row['네이버_시도']).filter(Boolean))].sort();
