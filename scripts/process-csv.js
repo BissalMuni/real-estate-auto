@@ -150,18 +150,6 @@ if (totalCount > 0) {
     <div style="margin: 30px 0;">
       <h2 style="color: #764ba2; margin-bottom: 20px;">📊 부동산 매물 데이터</h2>
       
-      <!-- 중복 제거 정보 -->
-      <div style="background: #e8f5e8; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #28a745;">
-        <h3 style="color: #155724; margin-bottom: 10px; font-size: 16px;">🔄 중복 제거 결과</h3>
-        <div style="color: #155724; font-weight: 600;">
-          원본 데이터: ${originalCount.toLocaleString()}개 → 중복 제거 후: ${totalCount.toLocaleString()}개 
-          <span style="color: #dc3545;">(${(originalCount - totalCount).toLocaleString()}개 중복 제거)</span>
-        </div>
-        <div style="color: #6c757d; font-size: 14px; margin-top: 5px;">
-          중복 제거 기준: 가격차이, 단지명, 지역정보, 면적, 매매가, 층정보, 확인일자, KB평균가, 단지코드
-        </div>
-      </div>
-      
       <!-- 필터 영역 -->
       <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #dee2e6;">
         <h3 style="color: #495057; margin-bottom: 15px; font-size: 16px;">🔍 지역 필터</h3>
@@ -499,6 +487,8 @@ const html = `<!DOCTYPE html>
                 <p>제거된 중복 수</p>
             </div>
         </div>
+
+        ${dataTableHTML}
         
         ${totalCount > 0 ? `
         <div class="quality-stats">
@@ -534,7 +524,7 @@ const html = `<!DOCTYPE html>
         </div>
         ` : ''}
         
-        ${dataTableHTML}
+
         
         ${fileStats.length > 0 ? `
         <div class="file-info">
