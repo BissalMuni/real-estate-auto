@@ -490,39 +490,7 @@ const html = `<!DOCTYPE html>
 
         ${dataTableHTML}
         
-        ${totalCount > 0 ? `
-        <div class="quality-stats">
-            <h3>📊 데이터 품질 현황</h3>
-            <div class="quality-item">
-                <span>단지코드 보유 매물</span>
-                <span class="${qualityStats.withComplexCode > 0 ? 'quality-good' : 'quality-bad'}">
-                    ${qualityStats.withComplexCode.toLocaleString()}개 
-                    (${((qualityStats.withComplexCode / qualityStats.totalItems) * 100).toFixed(1)}%)
-                </span>
-            </div>
-            <div class="quality-item">
-                <span>단지코드 없는 매물</span>
-                <span class="${qualityStats.withoutComplexCode > 0 ? 'quality-warning' : 'quality-good'}">
-                    ${qualityStats.withoutComplexCode.toLocaleString()}개 
-                    (${((qualityStats.withoutComplexCode / qualityStats.totalItems) * 100).toFixed(1)}%)
-                </span>
-            </div>
-            <div class="quality-item">
-                <span>단지명 보유 매물</span>
-                <span class="${qualityStats.withComplexName > 0 ? 'quality-good' : 'quality-bad'}">
-                    ${qualityStats.withComplexName.toLocaleString()}개 
-                    (${((qualityStats.withComplexName / qualityStats.totalItems) * 100).toFixed(1)}%)
-                </span>
-            </div>
-            <div class="quality-item">
-                <span>링크 연결 가능 매물</span>
-                <span class="${qualityStats.withComplexCode > 0 ? 'quality-good' : 'quality-bad'}">
-                    ${qualityStats.withComplexCode.toLocaleString()}개 
-                    (단지코드 + 단지명 모두 있는 경우)
-                </span>
-            </div>
-        </div>
-        ` : ''}
+
         
 
         
