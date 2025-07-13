@@ -125,10 +125,26 @@ if (totalCount > 0) {
   
   const displayData = filteredData.slice(0, 2000);
 
-  // 시도/시군구 옵션 생성
+  // 시도/시군구 옵션 생성 - 종속 관계 구축
   const sidoOptions = [...new Set(filteredData.map(row => row['네이버_시도']).filter(Boolean))].sort();
-  const sigunguOptions = [...new Set(filteredData.map(row => row['네이버_시군구']).filter(Boolean))].sort();
   
+  // 시도별 시군구 매핑 생성
+  const sidoSigunguMap = {};
+  filteredData.forEach(row => {
+    const sido = row['네이버_시도'];
+    const sigungu = row['네이버_시군구'];
+    if (sido && sigungu) {
+      if (!sidoSigunguMap[sido]) {
+        sidoSigunguMap[sido] = new Set();
+      }
+      sidoSigunguMap[sido].add(sigungu);
+    }
+  });
+  
+  // Set을 배열로 변환하고 정렬
+  Object.keys(sidoSigunguMap).forEach(sido => {
+    sidoSigunguMap[sido] = [...sidoSigunguMap[sido]].sort();
+  });
   
   dataTableHTML = `
     <div style="margin: 30px 0;">
@@ -152,7 +168,7 @@ if (totalCount > 0) {
         <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
           <div style="display: flex; align-items: center; gap: 8px;">
             <label style="font-weight: 600; color: #495057;">시도:</label>
-            <select id="sidoFilter" onchange="filterData()" style="padding: 8px 12px; border: 1px solid #ced4da; border-radius: 5px; background: white; min-width: 120px;">
+            <select id="sidoFilter" onchange="updateSigunguOptions(); filterData();" style="padding: 8px 12px; border: 1px solid #ced4da; border-radius: 5px; background: white; min-width: 120px;">
               <option value="">전체</option>
               ${sidoOptions.map(sido => `<option value="${sido}">${sido}</option>`).join('')}
             </select>
@@ -161,7 +177,6 @@ if (totalCount > 0) {
             <label style="font-weight: 600; color: #495057;">시군구:</label>
             <select id="sigunguFilter" onchange="filterData()" style="padding: 8px 12px; border: 1px solid #ced4da; border-radius: 5px; background: white; min-width: 120px;">
               <option value="">전체</option>
-              ${sigunguOptions.map(sigungu => `<option value="${sigungu}">${sigungu}</option>`).join('')}
             </select>
           </div>
           <button onclick="resetFilters()" style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
@@ -239,7 +254,11 @@ if (totalCount > 0) {
           </tbody>
         </table>
       </div>
-     
+      
+      <!-- 시도-시군구 매핑 데이터를 JavaScript로 전달 -->
+      <script>
+        window.sidoSigunguMap = ${JSON.stringify(sidoSigunguMap)};
+      </script>
     </div>
   `;
 }
@@ -559,6 +578,26 @@ const html = `<!DOCTYPE html>
             fileToggle.classList.toggle('collapsed');
         }
 
+        // 시군구 옵션 업데이트 함수
+        function updateSigunguOptions() {
+            const sidoFilter = document.getElementById('sidoFilter');
+            const sigunguFilter = document.getElementById('sigunguFilter');
+            const selectedSido = sidoFilter.value;
+            
+            // 시군구 드롭다운 초기화
+            sigunguFilter.innerHTML = '<option value="">전체</option>';
+            
+            if (selectedSido && window.sidoSigunguMap && window.sidoSigunguMap[selectedSido]) {
+                // 선택된 시도에 해당하는 시군구만 추가
+                window.sidoSigunguMap[selectedSido].forEach(sigungu => {
+                    const option = document.createElement('option');
+                    option.value = sigungu;
+                    option.textContent = sigungu;
+                    sigunguFilter.appendChild(option);
+                });
+            }
+        }
+
         // 필터링 함수
         function filterData() {
             const sidoFilter = document.getElementById('sidoFilter').value;
@@ -591,6 +630,7 @@ const html = `<!DOCTYPE html>
         function resetFilters() {
             document.getElementById('sidoFilter').value = '';
             document.getElementById('sigunguFilter').value = '';
+            updateSigunguOptions(); // 시군구 옵션도 초기화
             filterData();
         }
     </script>    
